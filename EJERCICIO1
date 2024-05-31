@@ -1,0 +1,66 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import traceback
+
+
+#Esperar a que se cargue la pagina
+def wait_for_page(driver, timeout=10):
+    try:
+        WebDriverWait(driver, timeout).until(
+            lambda d: d.execute_script("return document.readyState") == "complete"
+        )
+    except:
+        print("Error waiting for page")
+        raise
+
+def click_element(driver, value, timeout=10):
+    try:
+        wait_for_page(driver)
+        
+        WebDriverWait(driver, 15).until(
+            EC.invisibility_of_element_located((By.CLASS_NAME, "preloader"))
+        )
+
+        elemento = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.XPATH, value))
+        )
+        driver.execute_script("arguments[0].click();", elemento)
+
+        elements = driver.find_elements(By.XPATH, "//div[@class='text']")
+        for ele in elements:
+            if ele.text:
+                print(ele.text)
+                
+    except Exception as e:
+        print(f"Failed to click the element {value}: {e}")
+        traceback.print_exc()
+        
+def main():
+    chrome_driver_path = 'C:/chromedriver/chromedriver.exe'
+
+    # Configurar las opciones del navegador
+    options = webdriver.ChromeOptions()
+    options.add_argument("--start-maximized")
+
+    service = Service(chrome_driver_path)
+    driver = webdriver.Chrome(service=service, options=options)
+
+    try:
+        driver.get("https://www.bcncgroup.com")
+
+        click_element(driver, "//a[contains(@class,'menu-item-home')]")
+        print("************************************************************")
+        click_element(driver, "//a[contains(@href,'who-we-are')]")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        traceback.print_exc()
+
+    finally:
+        driver.quit()
+
+if __name__ == "__main__":
+    main()
